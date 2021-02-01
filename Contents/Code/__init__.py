@@ -741,7 +741,6 @@ class XBMCNFO(PlexAgent):
                             newrole.role = role
                         rroles.append (newrole.role)
                     except:
-                        newrole.role = 'Unknown Role ' + str(n)
                         pass
                     newrole.photo = ''
                     athumbloc = preferences['athumblocation']
