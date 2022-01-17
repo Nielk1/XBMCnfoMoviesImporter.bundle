@@ -111,6 +111,12 @@
     "default": ""
   },
   {
+    "id":"enableathumb",
+    "label":"Enable actor thumbnails",
+    "type":"bool",
+    "default":"true"
+  },
+  {
     "id":"athumblocation",
     "label":"actor thumb location",
     "type": "enum",

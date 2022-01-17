@@ -745,60 +745,61 @@ class XBMCNFO(PlexAgent):
                     except:
                         pass
                     newrole.photo = ''
-                    athumbloc = preferences['athumblocation']
-                    if athumbloc in ['local','global']:
-                        aname = None
-                        try:
+                    if preferences['enableathumb']:
+                        athumbloc = preferences['athumblocation']
+                        if athumbloc in ['local','global']:
+                            aname = None
                             try:
-                                aname = actor.xpath('name')[0].text
+                                try:
+                                    aname = actor.xpath('name')[0].text
+                                except:
+                                    pass
+                                if aname:
+                                    aimagefilename = aname.replace(' ', '_') + '.jpg'
+                                    athumbpath = preferences['athumbpath'].rstrip ('/')
+                                    if not athumbpath == '':
+                                        if athumbloc == 'local':
+                                            localpath = os.path.join (folder_path,'.actors',aimagefilename)
+                                            scheme, netloc, path, qs, anchor = urlparse.urlsplit(athumbpath)
+                                            basepath = os.path.basename (path)
+                                            log.debug ('Searching for additional path parts after: ' + basepath)
+                                            searchpos = folder_path.find (basepath)
+                                            addpos = searchpos + len(basepath)
+                                            addpath = os.path.dirname(folder_path)[addpos:]
+                                            if searchpos != -1 and addpath !='':
+                                                log.debug ('Found additional path parts: ' + addpath)
+                                            else:
+                                                addpath = ''
+                                                log.debug ('Found no additional path parts.')
+                                            aimagepath = athumbpath + addpath + '/' + os.path.basename(folder_path) + '/.actors/' + aimagefilename
+                                            if not os.path.isfile(localpath):
+                                                log.debug ('failed setting ' + athumbloc + ' actor photo: ' + aimagepath)
+                                                aimagepath = None
+                                        if athumbloc == 'global':
+                                            aimagepath = athumbpath + '/' + aimagefilename
+                                            scheme, netloc, path, qs, anchor = urlparse.urlsplit(aimagepath)
+                                            path = urllib.quote(path.encode('utf-8'))
+                                            path = urllib.quote(path, '/%')
+                                            qs = urllib.quote_plus(qs, ':&=')
+                                            aimagepathurl = urlparse.urlunsplit((scheme, netloc, path, qs, anchor))
+                                            response = urllib.urlopen(aimagepathurl).code
+                                            if not response == 200:
+                                                log.debug ('failed setting ' + athumbloc + ' actor photo: ' + aimagepath)
+                                                aimagepath = None
+                                        if aimagepath:
+                                            newrole.photo = aimagepath
+                                            log.debug ('success setting ' + athumbloc + ' actor photo: ' + aimagepath)
                             except:
+                                log.debug ('exception setting local or global actor photo!')
+                                log.debug ("Traceback: " + traceback.format_exc())
                                 pass
-                            if aname:
-                                aimagefilename = aname.replace(' ', '_') + '.jpg'
-                                athumbpath = preferences['athumbpath'].rstrip ('/')
-                                if not athumbpath == '':
-                                    if athumbloc == 'local':
-                                        localpath = os.path.join (folder_path,'.actors',aimagefilename)
-                                        scheme, netloc, path, qs, anchor = urlparse.urlsplit(athumbpath)
-                                        basepath = os.path.basename (path)
-                                        log.debug ('Searching for additional path parts after: ' + basepath)
-                                        searchpos = folder_path.find (basepath)
-                                        addpos = searchpos + len(basepath)
-                                        addpath = os.path.dirname(folder_path)[addpos:]
-                                        if searchpos != -1 and addpath !='':
-                                            log.debug ('Found additional path parts: ' + addpath)
-                                        else:
-                                            addpath = ''
-                                            log.debug ('Found no additional path parts.')
-                                        aimagepath = athumbpath + addpath + '/' + os.path.basename(folder_path) + '/.actors/' + aimagefilename
-                                        if not os.path.isfile(localpath):
-                                            log.debug ('failed setting ' + athumbloc + ' actor photo: ' + aimagepath)
-                                            aimagepath = None
-                                    if athumbloc == 'global':
-                                        aimagepath = athumbpath + '/' + aimagefilename
-                                        scheme, netloc, path, qs, anchor = urlparse.urlsplit(aimagepath)
-                                        path = urllib.quote(path.encode('utf-8'))
-                                        path = urllib.quote(path, '/%')
-                                        qs = urllib.quote_plus(qs, ':&=')
-                                        aimagepathurl = urlparse.urlunsplit((scheme, netloc, path, qs, anchor))
-                                        response = urllib.urlopen(aimagepathurl).code
-                                        if not response == 200:
-                                            log.debug ('failed setting ' + athumbloc + ' actor photo: ' + aimagepath)
-                                            aimagepath = None
-                                    if aimagepath:
-                                        newrole.photo = aimagepath
-                                        log.debug ('success setting ' + athumbloc + ' actor photo: ' + aimagepath)
-                        except:
-                            log.debug ('exception setting local or global actor photo!')
-                            log.debug ("Traceback: " + traceback.format_exc())
-                            pass
-                    if athumbloc == 'link' or not newrole.photo:
-                        try:
-                            newrole.photo = actor.xpath('thumb')[0].text
-                            log.debug ('linked actor photo: ' + newrole.photo)
-                        except:
-                            log.debug ('failed setting linked actor photo!')
-                            pass
+                        if athumbloc == 'link' or not newrole.photo:
+                            try:
+                                newrole.photo = actor.xpath('thumb')[0].text
+                                log.debug ('linked actor photo: ' + newrole.photo)
+                            except:
+                                log.debug ('failed setting linked actor photo!')
+                                pass
 
                 if not preferences['localmediaagent']:
                     # Trailer Support
